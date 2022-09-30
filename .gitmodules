@@ -1,21 +1,21 @@
 [submodule "launchpad"]
 	path = launchpad
-	url = git@github.com:openlattice/launchpad.git
+	url = git@github.com:maiveric/ol-launchpad.git
 [submodule "mechanic"]
 	path = mechanic
-	url = git@github.com:openlattice/mechanic.git
+	url = git@github.com:maiveric/ol-mechanic.git
 [submodule "neuron"]
 	path = neuron
-	url = git@github.com:openlattice/neuron.git
-[submodule "rhizome-client"]
-	path = rhizome-client
-	url = git@github.com:geekbeast/rhizome-client.git
+	url = git@github.com:maiveric/ol-neuron.git
 [submodule "rhizome"]
 	path = rhizome
-	url = git@github.com:geekbeast/rhizome.git
+	url = git@github.com:maiveric/ol-rhizome.git
+[submodule "rhizome-client"]
+	path = rhizome-client
+	url = git@github.com:maiveric/ol-rhizome-client.git
 [submodule "shuttle"]
 	path = shuttle
-	url = git@github.com:openlattice/shuttle.git
+	url = git@github.com:maiveric/ol-shuttle.git
 [submodule "socrates"]
 	path = socrates
-	url = git@github.com:openlattice/socrates.git
+	url = git@github.com:maiveric/ol-socrates.git
