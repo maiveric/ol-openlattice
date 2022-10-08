@@ -1046,6 +1046,7 @@ public class ConductorElasticsearchImpl implements ConductorElasticsearchApi {
                         .addSort( sort )
                         .setFetchSource( false );
 //                        .setAllowPartialSearchResults( true ); // Sometimes needed for local testing.
+                logger.info("Search request {}",request.toString());
                 requests.add( request );
             }
         }
