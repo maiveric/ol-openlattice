@@ -105,9 +105,14 @@ class PersistentSearchMessengerTask : HazelcastFixedRateTask<PersistentSearchMes
         val dependencies = getDependency()
 
         val userSecurablePrincipal = dependencies.principalsManager.getSecurablePrincipal(userAclKey)
+        logger.info("user acl key {}, principal type", userSecurablePrincipal.principal.id, userSecurablePrincipal.principal.type.name )
         val allUserPrincipals = dependencies.principalsManager.getAllPrincipals(
                 userSecurablePrincipal
         ).map { it.principal }.toSet().plus(userSecurablePrincipal.principal)
+
+        allUserPrincipals.forEach {
+            logger.info("All user principals user acl key {}, principal type", it.id, it.type.name )
+        }
 
         if (userSecurablePrincipal.principal == null || userSecurablePrincipal.principal.id == null) {
             logger.error(
@@ -119,14 +124,30 @@ class PersistentSearchMessengerTask : HazelcastFixedRateTask<PersistentSearchMes
 
         val allEntitySetIds = persistentSearches.flatMap { it.searchConstraints.entitySetIds.toSet() }.toSet()
 
+        allEntitySetIds.forEach{
+            logger.info("All entity set ids {}", it.toString())
+        }
+
         val authorizedEntitySetIds = dependencies.authorizationHelper
                 .getAuthorizedEntitySetsForPrincipals(
                         allEntitySetIds, EdmAuthorizationHelper.READ_PERMISSION, allUserPrincipals
                 )
 
+        authorizedEntitySetIds.forEach{
+            logger.info("authorizedEntitySetIds {}", it.toString())
+        }
+
         val authorizedPropertyTypesByEntitySet = dependencies.authorizationHelper.getAuthorizedPropertiesOnEntitySets(
                 authorizedEntitySetIds, EdmAuthorizationHelper.READ_PERMISSION, allUserPrincipals
         )
+
+        authorizedPropertyTypesByEntitySet.forEach{
+            logger.info("authorizedPropertyTypesByEntitySet key {}", it.key.toString())
+            it.value.forEach { (t, u) ->
+                logger.info("authorizedPropertyTypesByEntitySet each key {}, value id {}, type {}, analyser {}, datatype {}, description {}, title {} ",
+                    t.toString(), u.id, u.type, u.analyzer, u.datatype, u.description, u.title)
+            }
+        }
 
         val updatedReadDateTimes = mutableMapOf<UUID, OffsetDateTime>()
 
@@ -134,15 +155,24 @@ class PersistentSearchMessengerTask : HazelcastFixedRateTask<PersistentSearchMes
 
             val entitySetIds = persistentSearch.searchConstraints.entitySetIds.toSet()
 
+            entitySetIds.forEach {
+                logger.info("Search entitySetIds {}", it.toString())
+            }
+
             val constraints = getUpdatedConstraints(persistentSearch)
+            logger.info("constraints start {} max {}", constraints.start, constraints.maxHits)
+
+
 
             if (!authorizedEntitySetIds.containsAll(entitySetIds)) {
+                logger.info("authorizedEntitySetIds don't have the entity set id : return")
                 return@forEach
             }
 
             val results = dependencies.searchService.executeSearch(constraints, authorizedPropertyTypesByEntitySet.filterKeys { entitySetIds.contains(it) })
 
             if (results.hits.isEmpty()) {
+                logger.info("Empty Search result : return")
                 return@forEach
             }
 
@@ -159,6 +189,13 @@ class PersistentSearchMessengerTask : HazelcastFixedRateTask<PersistentSearchMes
                     ),
                     allUserPrincipals
             ).neighbors
+
+            neighborsById.forEach { (t, u) ->
+                logger.info(" Neighbors id {}", t.toString())
+                u.forEach {
+                    logger.info(" Neighbors Entity Details {}", it.neighborDetails)
+                }
+            }
 
             try {
                 sendAlertsForNewWrites(userSecurablePrincipal, persistentSearch, results, neighborsById)
